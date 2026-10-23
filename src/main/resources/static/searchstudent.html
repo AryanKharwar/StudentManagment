@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Student</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M16 8 6 13l10 5 10-5-10-5zM10 16v4c3 2.5 9 2.5 12 0v-4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-area="public">
+<section class="banner">
+    <span class="eyebrow">Student lookup</span>
+    <h1>Find a student</h1>
+    <p class="sub">Enter a Student ID to see that student's details.</p>
+</section>
+<main class="search-main">
+<div class="card">
+    <form onsubmit="searchStudent(event)" class="search-form">
+        <div class="field"><label for="search">Student ID</label>
+            <div class="input-wrap has-icon"><span class="lead" data-icon="search"></span>
+                <input type="number" id="search" placeholder="Enter Student ID" min="1" required></div></div>
+        <button type="submit" class="btn" id="searchBtn" style="height:42px"><span data-icon="search" style="display:contents"></span>Search</button>
+    </form>
+    <p class="msg" id="message" role="status"></p>
+</div>
+<div class="card pad0" id="idle" style="margin-top:20px">
+    <div class="empty"><span class="ic" data-icon="users"></span><h3>Look up a student</h3><p>Type a Student ID above and press Search to see their record here.</p></div>
+</div>
+<div class="card pad0" id="result" hidden style="margin-top:20px">
+    <div class="tbl"><table class="data">
+        <thead><tr><th>Student ID</th><th>Student</th><th>Course</th><th>Semester</th><th>Phone</th></tr></thead>
+        <tbody id="studentTableBody"></tbody>
+    </table></div>
+</div>
+</main>
+<script src="csrf.js"></script>
+<script>
+function searchStudent(event) {
+    event.preventDefault();   // stop the page from reloading
+    let id = document.getElementById("search").value;
+    const message = document.getElementById("message");
+    const box = document.getElementById("result");
+    const idle = document.getElementById("idle");
+    const table = document.getElementById("studentTableBody");
+    const button = document.getElementById("searchBtn");
+    setLoading(button, true);
+
+    fetch("/searchstudent?id=" + encodeURIComponent(id))
+        .then(response => response.text())
+        .then(text => {
+            table.replaceChildren();
+            idle.hidden = true;
+            // The server sends an empty reply when no student has that ID
+            const student = text.trim() === "" ? null : JSON.parse(text);
+            if (student === null) {
+                box.hidden = true;
+                showMsg(message, "No student found with ID " + id, "err");
+                return;
+            }
+            showMsg(message, "Student found", "ok");
+            box.hidden = false;
+            const row = document.createElement("tr");
+            const cells = [
+                ["Student ID", "mono", student.id],
+                ["Student", "cell-person", null],
+                ["Course", "", student.course],
+                ["Semester", "num", student.semester],
+                ["Phone", "num", student.phone]
+            ];
+            cells.forEach(c => {
+                const cell = document.createElement("td");
+                if (c[1]) { cell.className = c[1]; }
+                cell.dataset.label = c[0];
+                if (c[0] === "Student") {
+                    cell.appendChild(personCell(student));   // safe: built with textContent
+                } else if (c[0] === "Course" && c[2]) {
+                    cell.appendChild(el("span", "badge", c[2]));
+                } else {
+                    cell.textContent = c[2] === null || c[2] === undefined ? "" : c[2];   // safe: no innerHTML
+                }
+                row.appendChild(cell);
+            });
+            table.appendChild(row);
+        })
+        .catch(error => {
+            console.log(error);
+            box.hidden = true;
+            showMsg(message, "Could not search right now. Please try again.", "err");
+        })
+        .finally(() => setLoading(button, false));
+}
+</script>
+</body>
+</html>

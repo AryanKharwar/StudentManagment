@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Students</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M16 8 6 13l10 5 10-5-10-5zM10 16v4c3 2.5 9 2.5 12 0v-4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-area="admin">
+<main>
+<div class="page-head">
+    <div><h1>All students</h1><p class="sub" id="count">Loading students...</p></div>
+    <a class="btn" href="addstudent.html"><span data-icon="add" style="display:contents"></span>Add student</a>
+</div>
+<div class="card pad0">
+    <div class="toolbar">
+        <div class="input-wrap has-icon"><label for="filter" class="sr-only">Filter</label>
+            <span class="lead" data-icon="search"></span>
+            <input type="search" id="filter" placeholder="Search by ID, name or course"></div>
+        <span class="toolbar-note" id="shown" aria-live="polite"></span>
+    </div>
+    <div class="tbl" id="tableWrap"><table class="data">
+        <thead><tr><th>Student ID</th><th>Student</th><th>Course</th><th>Semester</th><th>Phone</th><th class="right">Actions</th></tr></thead>
+        <tbody id="rows"></tbody>
+    </table></div>
+    <div class="empty" id="empty" hidden>
+        <span class="ic" data-icon="users"></span>
+        <h3 id="emptyTitle">No students yet</h3>
+        <p id="emptyText">No students yet.</p>
+        <a class="btn" id="emptyAction" href="addstudent.html"><span data-icon="add" style="display:contents"></span>Add student</a>
+    </div>
+</div>
+</main>
+<script src="csrf.js"></script>
+<script>
+let students = [];
+const rows = document.getElementById("rows");
+const empty = document.getElementById("empty");
+const count = document.getElementById("count");
+const tableWrap = document.getElementById("tableWrap");
+
+function showEmpty(title, text, withAction) {
+    document.getElementById("emptyTitle").textContent = title;
+    document.getElementById("emptyText").textContent = text;
+    document.getElementById("emptyAction").hidden = !withAction;
+    empty.hidden = false;
+    tableWrap.hidden = true;
+}
+
+function showSkeleton() {
+    rows.replaceChildren();
+    tableWrap.hidden = false;
+    empty.hidden = true;
+    for (let i = 0; i < 5; i++) {
+        const tr = document.createElement("tr");
+        for (let c = 0; c < 6; c++) {
+            const td = document.createElement("td");
+            td.appendChild(el("div", "sk"));
+            tr.appendChild(td);
+        }
+        rows.appendChild(tr);
+    }
+}
+
+function render() {
+    const raw = document.getElementById("filter").value.trim();
+    const q = raw.toLowerCase();
+    const list = students.filter(s => q === "" ||
+        [s.id, s.name, s.course].some(v => String(v === null || v === undefined ? "" : v).toLowerCase().includes(q)));
+    rows.replaceChildren();
+    count.textContent = students.length + (students.length === 1 ? " student" : " students");
+    document.getElementById("shown").textContent = q === "" ? "" : "Showing " + list.length + " of " + students.length;
+
+    if (list.length === 0) {
+        if (students.length === 0) { showEmpty("No students yet", "Add the first one to see it here.", true); }
+        else { showEmpty("No matches found", "Nothing matches \u201C" + raw + "\u201D. Try a different ID, name or course.", false); }
+        return;
+    }
+    empty.hidden = true;
+    tableWrap.hidden = false;
+
+    list.forEach(s => {
+        const tr = document.createElement("tr");
+        function cell(label, cls) {
+            const td = document.createElement("td");
+            if (cls) { td.className = cls; }
+            if (label) { td.dataset.label = label; }
+            tr.appendChild(td);
+            return td;
+        }
+        cell("Student ID", "mono").textContent = s.id === null || s.id === undefined ? "" : s.id;   // safe: no innerHTML
+        cell("Student", "cell-person").appendChild(personCell(s));
+        const course = cell("Course");
+        if (s.course) { course.appendChild(el("span", "badge", s.course)); }
+        cell("Semester", "num").textContent = s.semester === null || s.semester === undefined ? "" : s.semester;
+        cell("Phone", "num").textContent = s.phone === null || s.phone === undefined ? "" : s.phone;
+
+        const td = cell(null, "right cell-actions"), acts = el("div", "acts");
+        const edit = el("a", "icon-btn");
+        edit.href = "updateStudent2.html?id=" + encodeURIComponent(s.id);
+        edit.title = "Edit " + (s.name || "student");
+        edit.setAttribute("aria-label", "Edit " + (s.name || "student " + s.id));
+        edit.insertAdjacentHTML("afterbegin", icon("edit"));
+        const del = el("button", "icon-btn danger");
+        del.type = "button";
+        del.title = "Delete " + (s.name || "student");
+        del.setAttribute("aria-label", "Delete " + (s.name || "student " + s.id));
+        del.insertAdjacentHTML("afterbegin", icon("trash"));
+        del.onclick = () => removeStudent(s, del);
+        acts.append(edit, del);
+        td.appendChild(acts);
+        rows.appendChild(tr);
+    });
+}
+
+async function removeStudent(s, button) {
+    const ok = await confirmDialog("Delete student?", "This permanently deletes " + (s.name || "this student") + " (ID " + s.id + ").", "Delete");
+    if (!ok) { return; }
+    setLoading(button, true);
+    try {
+        // Same request the Delete page makes: POST /deletestudent with the CSRF token
+        const response = await fetch("/deletestudent", {
+            method: "POST",
+            headers: csrfHeaders({ "Content-Type": "application/x-www-form-urlencoded" }),
+            body: "id=" + encodeURIComponent(s.id)
+        });
+        if (response.url.includes("adimin-login")) { window.location.href = "/adimin-login.html"; return; }
+        if (response.url.includes("deleteSuccess")) {
+            students = students.filter(x => x.id !== s.id);
+            render();
+            toast("Student deleted");
+        } else {
+            toast("Student was not found. Refreshing the list.", "err");
+            load();
+        }
+    } catch (error) {
+        console.log(error);
+        toast("Could not delete the student. Please try again.", "err");
+        setLoading(button, false);
+    }
+}
+
+function load() {
+    showSkeleton();
+    fetch("/getst")
+        .then(response => {
+            if (response.redirected) { window.location.href = "/adimin-login.html"; throw new Error("not logged in"); }
+            return response.json();
+        })
+        .then(data => { students = data; render(); })
+        .catch(error => {
+            console.log(error);
+            rows.replaceChildren();
+            showEmpty("Couldn't load students", "Refresh the page to try again.", false);
+            count.textContent = "Students";
+        });
+}
+
+document.getElementById("filter").addEventListener("input", render);
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Registration</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M16 8 6 13l10 5 10-5-10-5zM10 16v4c3 2.5 9 2.5 12 0v-4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-area="auth">
+<main class="auth">
+    <aside class="auth-aside">
+        <a class="brand" href="index.html"><span class="brand-mark" data-icon="cap"></span>Student Manager</a>
+        <div>
+            <h2>Set up your admin account.</h2>
+            <p class="lead">Create an account to add, update and remove student records from a single dashboard.</p>
+            <ul class="auth-points">
+                <li><span class="ic" data-icon="add"></span>Add students in seconds</li>
+                <li><span class="ic" data-icon="dash"></span>Live totals on your dashboard</li>
+                <li><span class="ic" data-icon="shield"></span>Hashed passwords and CSRF protection</li>
+            </ul>
+        </div>
+        <p class="auth-note">&copy; <span data-year></span> Student Manager</p>
+    </aside>
+
+    <section class="auth-main">
+        <a class="auth-back" href="index.html"><span data-icon="back" style="display:contents"></span>Back to home</a>
+        <div class="auth-card">
+            <a class="brand" href="index.html"><span class="brand-mark" data-icon="cap"></span>Student Manager</a>
+            <h1>Create admin account</h1>
+            <p class="sub">Choose an Admin ID and a password of at least 8 characters.</p>
+            <form onsubmit="event.preventDefault(); createAccount();" class="stack">
+                <div class="field"><label for="adminId">Admin ID</label>
+                    <input type="text" id="adminId" placeholder="Create Admin ID" maxlength="50" autocomplete="username" required></div>
+                <div class="field"><label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Create Password" minlength="8" autocomplete="new-password" required>
+                    <p class="hint">Minimum 8 characters.</p></div>
+                <div class="field"><label for="phone">Phone number <span class="opt">(optional)</span></label>
+                    <input type="text" id="phone" placeholder="10 digit phone number" maxlength="10" inputmode="numeric"></div>
+                <button type="submit" class="btn lg block" id="registerBtn">Create admin account</button>
+            </form>
+            <p class="msg" id="message" role="alert"></p>
+            <p class="auth-alt">Already have an admin account? <a href="adimin-login.html">Log in</a></p>
+        </div>
+    </section>
+</main>
+<script src="csrf.js"></script>
+<script>
+// Keep these in sync with the server rules in AdminController
+const MIN_PASSWORD_LENGTH = 8;
+
+function createAccount() {
+    let adminId = document.getElementById("adminId").value.trim();
+    let password = document.getElementById("password").value;
+    let phone = document.getElementById("phone").value.trim();
+    const message = document.getElementById("message");
+    const button = document.getElementById("registerBtn");
+
+    if (adminId === "") { showMsg(message, "Please enter Admin ID", "err"); return; }
+    if (password.length < MIN_PASSWORD_LENGTH) {
+        showMsg(message, "Password must be at least " + MIN_PASSWORD_LENGTH + " characters", "err");
+        return;
+    }
+    if (phone !== "" && !/^[0-9]{10}$/.test(phone)) {
+        showMsg(message, "Phone number must be 10 digits (or leave it empty)", "err");
+        return;
+    }
+    setLoading(button, true);
+
+    fetch("/registeradmin", {
+        method: "POST",
+        headers: csrfHeaders({ "Content-Type": "application/x-www-form-urlencoded" }),
+        body: "adminId=" + encodeURIComponent(adminId) +
+            "&password=" + encodeURIComponent(password) +
+            "&phone=" + encodeURIComponent(phone)
+    })
+        .then(response => response.text().then(text => ({ ok: response.ok, text: text })))
+        .then(result => {
+            showMsg(message, result.text.length > 120 ? "Registration failed. Please try again." : result.text, result.ok ? "ok" : "err");
+            if (result.ok) {
+                setTimeout(() => { window.location.href = "adimin-login.html"; }, 1500);
+            } else {
+                setLoading(button, false);
+            }
+        })
+        .catch(error => {
+            console.log(error);
+            showMsg(message, "Something went wrong. Check your connection and try again.", "err");
+            setLoading(button, false);
+        });
+}
+</script>
+</body>
+</html>

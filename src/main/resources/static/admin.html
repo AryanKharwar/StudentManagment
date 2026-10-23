@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M16 8 6 13l10 5 10-5-10-5zM10 16v4c3 2.5 9 2.5 12 0v-4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-area="admin">
+<main>
+<div class="page-head">
+    <div><h1>Dashboard</h1><p class="sub">An overview of your student records.</p></div>
+    <a class="btn" href="addstudent.html"><span data-icon="add" style="display:contents"></span>Add student</a>
+</div>
+
+<div class="stats">
+    <div class="card stat">
+        <div class="stat-top"><span>Total students</span><span class="ic" data-icon="users"></span></div>
+        <b class="stat-value sk" id="statTotal">-</b>
+        <span class="stat-note">Records in the system</span>
+    </div>
+    <div class="card stat">
+        <div class="stat-top"><span>Courses</span><span class="ic" data-icon="book"></span></div>
+        <b class="stat-value sk" id="statCourses">-</b>
+        <span class="stat-note">Distinct courses enrolled</span>
+    </div>
+    <div class="card stat">
+        <div class="stat-top"><span>Largest course</span><span class="ic" data-icon="layers"></span></div>
+        <b class="stat-value sk" id="statTop" style="font-size:1.5rem;line-height:1.5">-</b>
+        <span class="stat-note" id="statTopNote">By number of students</span>
+    </div>
+</div>
+
+<div class="dash-grid">
+    <section class="card pad0">
+        <div class="panel-head"><h2>Quick actions</h2><p class="sub">Choose what you want to do.</p></div>
+        <ul class="action-list">
+            <li><a href="addstudent.html"><span class="ic" data-icon="add"></span><span class="txt"><b>Add student</b><span>Create a new student record.</span></span><span class="go" data-icon="chevron"></span></a></li>
+            <li><a href="viewstudents.html"><span class="ic" data-icon="users"></span><span class="txt"><b>View all students</b><span>Browse, edit or delete records.</span></span><span class="go" data-icon="chevron"></span></a></li>
+            <li><a href="updatestudent.html"><span class="ic" data-icon="edit"></span><span class="txt"><b>Update student</b><span>Change an existing student's details.</span></span><span class="go" data-icon="chevron"></span></a></li>
+            <li><a href="deletestudent.html"><span class="ic danger" data-icon="trash"></span><span class="txt"><b>Delete student</b><span>Remove a student by ID.</span></span><span class="go" data-icon="chevron"></span></a></li>
+            <li><a href="searchstudent.html"><span class="ic" data-icon="search"></span><span class="txt"><b>Search student</b><span>Find a student by ID.</span></span><span class="go" data-icon="chevron"></span></a></li>
+        </ul>
+    </section>
+
+    <section class="card pad0">
+        <div class="panel-head"><h2>Students by course</h2><p class="sub">Top courses by enrolment.</p></div>
+        <ul class="bars" id="courseBars" hidden></ul>
+        <div class="panel-empty" id="courseEmpty">Loading course data...</div>
+    </section>
+</div>
+</main>
+<script src="csrf.js"></script>
+<script>
+// Fill the summary cards from the existing /getst endpoint
+function finishStat(id, text) {
+    const node = document.getElementById(id);
+    node.classList.remove("sk");
+    node.textContent = text;
+}
+
+fetch("/getst")
+    .then(response => response.json())
+    .then(students => {
+        document.getElementById("statTotal").textContent = students.length;
+        document.getElementById("statCourses").textContent =
+            new Set(students.map(s => (s.course || "").trim().toLowerCase()).filter(Boolean)).size;
+
+        // Count students per course (keeps the first spelling that was used)
+        const counts = new Map();
+        students.forEach(s => {
+            const name = (s.course || "").trim();
+            if (!name) { return; }
+            const key = name.toLowerCase();
+            const entry = counts.get(key) || { name: name, n: 0 };
+            entry.n++;
+            counts.set(key, entry);
+        });
+        const top = Array.from(counts.values()).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+
+        finishStat("statTotal", students.length);
+        finishStat("statCourses", counts.size);
+        if (top.length > 0) {
+            finishStat("statTop", top[0].name);
+            document.getElementById("statTopNote").textContent = top[0].n + (top[0].n === 1 ? " student" : " students");
+        } else {
+            finishStat("statTop", "None yet");
+        }
+
+        const list = document.getElementById("courseBars");
+        const empty = document.getElementById("courseEmpty");
+        if (top.length === 0) {
+            empty.textContent = "No courses yet. Add a student to see the breakdown here.";
+            return;
+        }
+        empty.hidden = true;
+        list.hidden = false;
+        top.slice(0, 5).forEach(c => {
+            const li = el("li"), head = el("div", "bar-top"), track = el("div", "bar-track"), fill = el("div", "bar-fill");
+            head.append(el("span", null, c.name), el("span", null, c.n + (c.n === 1 ? " student" : " students")));
+            fill.style.width = "0%";
+            track.appendChild(fill);
+            li.append(head, track);
+            list.appendChild(li);
+            requestAnimationFrame(() => requestAnimationFrame(() => { fill.style.width = Math.round(c.n / top[0].n * 100) + "%"; }));
+        });
+    })
+    .catch(() => {
+        // keep the "-" placeholders if the list cannot be loaded
+        ["statTotal", "statCourses", "statTop"].forEach(id => finishStat(id, "-"));
+        document.getElementById("courseEmpty").textContent = "Course data could not be loaded.";
+    });
+</script>
+</body>
+</html>

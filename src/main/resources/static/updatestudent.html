@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Student</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M16 8 6 13l10 5 10-5-10-5zM10 16v4c3 2.5 9 2.5 12 0v-4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-area="admin">
+<main class="center">
+<div class="card narrow">
+    <div class="card-top">
+        <span class="ic lg" data-icon="edit"></span>
+        <div><h1>Update student</h1><p class="sub">Enter the ID of the student to update.</p></div>
+    </div>
+    <form action="/update" method="get" id="lookup" data-loading class="stack">
+        <div class="field"><label for="id">Student ID</label>
+            <div class="input-wrap has-icon"><span class="lead" data-icon="hash"></span>
+                <input type="number" id="id" name="id" placeholder="Enter Student ID" min="1" required></div></div>
+        <button type="submit" class="btn lg block arrow">Find student<span data-icon="arrow" style="display:contents"></span></button>
+    </form>
+    <div class="links"><a href="admin.html">Back to dashboard</a></div>
+</div>
+</main>
+<script src="csrf.js"></script>
+<script>
+// Remember the ID so the next page can pre-fill the student's current details
+document.getElementById("lookup").addEventListener("submit", () => {
+    try { sessionStorage.setItem("updateId", document.getElementById("id").value); } catch (e) { /* storage unavailable */ }
+});
+</script>
+</body>
+</html>

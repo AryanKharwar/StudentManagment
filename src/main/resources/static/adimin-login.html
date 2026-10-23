@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M16 8 6 13l10 5 10-5-10-5zM10 16v4c3 2.5 9 2.5 12 0v-4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-area="auth">
+<main class="auth">
+    <aside class="auth-aside">
+        <a class="brand" href="index.html"><span class="brand-mark" data-icon="cap"></span>Student Manager</a>
+        <div>
+            <h2>Welcome back to your workspace.</h2>
+            <p class="lead">Sign in to manage student records, keep details current and stay on top of your register.</p>
+            <ul class="auth-points">
+                <li><span class="ic" data-icon="users"></span>Browse and filter every student</li>
+                <li><span class="ic" data-icon="edit"></span>Update records in a few clicks</li>
+                <li><span class="ic" data-icon="lock"></span>Protected admin access</li>
+            </ul>
+        </div>
+        <p class="auth-note">&copy; <span data-year></span> Student Manager</p>
+    </aside>
+
+    <section class="auth-main">
+        <a class="auth-back" href="index.html"><span data-icon="back" style="display:contents"></span>Back to home</a>
+        <div class="auth-card">
+            <a class="brand" href="index.html"><span class="brand-mark" data-icon="cap"></span>Student Manager</a>
+            <h1>Admin login</h1>
+            <p class="sub">Sign in to manage students.</p>
+            <form onsubmit="event.preventDefault(); loginAdmin();" class="stack">
+                <div class="field"><label for="username">Admin ID</label>
+                    <input type="text" id="username" placeholder="Enter Admin ID" autocomplete="username" required></div>
+                <div class="field"><label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter Password" autocomplete="current-password" required></div>
+                <button type="submit" class="btn lg block" id="loginBtn">Log in</button>
+            </form>
+            <p class="msg" id="message" role="alert"></p>
+            <p class="auth-alt">Need an admin account? <a href="admin-register.html">Register</a></p>
+        </div>
+    </section>
+</main>
+<script src="csrf.js"></script>
+<script>
+function loginAdmin() {
+    let username = document.getElementById("username").value;
+    let password = document.getElementById("password").value;
+    const message = document.getElementById("message");
+    const button = document.getElementById("loginBtn");
+
+    if (username === "" || password === "") {
+        showMsg(message, "Please enter Admin ID and Password", "err");
+        return;
+    }
+    setLoading(button, true);
+
+    fetch("/adminlogin", {
+        method: "POST",
+        headers: csrfHeaders({ "Content-Type": "application/x-www-form-urlencoded" }),
+        body: "username=" + encodeURIComponent(username) +
+            "&password=" + encodeURIComponent(password)
+    })
+        .then(response => response.text())
+        .then(data => {
+            if (data === "Login successful") {
+                showMsg(message, "Login successful. Opening the dashboard...", "ok");
+                window.location.href = "/admin.html";
+            } else {
+                showMsg(message, data.length > 120 ? "Login failed. Please try again." : data, "err");
+                setLoading(button, false);
+            }
+        })
+        .catch(error => {
+            console.log(error);
+            showMsg(message, "Something went wrong. Check your connection and try again.", "err");
+            setLoading(button, false);
+        });
+}
+</script>
+</body>
+</html>

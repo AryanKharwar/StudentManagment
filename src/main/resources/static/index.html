@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M16 8 6 13l10 5 10-5-10-5zM10 16v4c3 2.5 9 2.5 12 0v-4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-area="public" data-nav="overlay">
+<main class="flush">
+
+<section class="hero">
+    <div class="hero-in">
+        <div class="hero-copy">
+            <span class="pill"><span data-icon="shield" style="display:contents"></span>Secure student records</span>
+            <h1>The simpler way to manage <em>student records.</em></h1>
+            <p class="lead">Add, update and look up students in one secure workspace. Administrators get a full dashboard, and anyone can find a student by ID in seconds.</p>
+            <div class="hero-cta">
+                <a class="btn lg light arrow" href="admin-register.html">Get started as admin<span data-icon="arrow" style="display:contents"></span></a>
+                <a class="btn lg outline-light" href="searchstudent.html"><span data-icon="search" style="display:contents"></span>Find a student</a>
+            </div>
+            <ul class="hero-points">
+                <li><span data-icon="check" style="display:contents"></span>Protected admin sign-in</li>
+                <li><span data-icon="check" style="display:contents"></span>Instant lookup by ID</li>
+                <li><span data-icon="check" style="display:contents"></span>Confirmation before deletes</li>
+            </ul>
+        </div>
+
+        <div class="mock" aria-hidden="true">
+            <div class="mock-bar"><i></i><i></i><i></i></div>
+            <div class="mock-body">
+                <div class="mock-side"><b></b><span></span><span></span><span></span><span></span></div>
+                <div class="mock-main">
+                    <div class="mock-stats">
+                        <div class="mock-stat"><span></span><b></b></div>
+                        <div class="mock-stat"><span></span><b></b></div>
+                        <div class="mock-stat"><span></span><b></b></div>
+                    </div>
+                    <div class="mock-table">
+                        <div class="mock-row head"><span></span><span></span><span></span><span></span></div>
+                        <div class="mock-row"><i class="av"></i><i class="ln"></i><i class="ln s"></i><i class="pl"></i></div>
+                        <div class="mock-row"><i class="av"></i><i class="ln"></i><i class="ln s"></i><i class="pl"></i></div>
+                        <div class="mock-row"><i class="av"></i><i class="ln"></i><i class="ln s"></i><i class="pl"></i></div>
+                        <div class="mock-row"><i class="av"></i><i class="ln"></i><i class="ln s"></i><i class="pl"></i></div>
+                        <div class="mock-row"><i class="av"></i><i class="ln"></i><i class="ln s"></i><i class="pl"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="portals">
+    <div class="section-in">
+        <div class="section-head">
+            <span class="eyebrow">Two ways in</span>
+            <h2>Built for administrators and students</h2>
+            <p>Whether you maintain the register or just need to find a record, there is a clear path in.</p>
+        </div>
+        <div class="portals">
+            <article class="portal">
+                <span class="ic lg brand-ic" data-icon="shield"></span>
+                <span class="tag">For administrators</span>
+                <h3>Admin workspace</h3>
+                <p>Sign in to run the full student register: add new students, edit their details and remove records safely.</p>
+                <ul class="checks">
+                    <li><span data-icon="check" style="display:contents"></span>Dashboard with live totals</li>
+                    <li><span data-icon="check" style="display:contents"></span>Add, update and delete students</li>
+                    <li><span data-icon="check" style="display:contents"></span>Filter the complete student list</li>
+                    <li><span data-icon="check" style="display:contents"></span>Protected by admin sign-in</li>
+                </ul>
+                <div class="portal-actions">
+                    <a class="btn arrow" href="adimin-login.html">Admin login<span data-icon="arrow" style="display:contents"></span></a>
+                    <a class="btn ghost" href="admin-register.html">Register as admin</a>
+                </div>
+            </article>
+            <article class="portal">
+                <span class="ic lg navy-ic" data-icon="search"></span>
+                <span class="tag">For students and staff</span>
+                <h3>Student lookup</h3>
+                <p>No account needed. Enter a Student ID to see a student's course, semester and contact details instantly.</p>
+                <ul class="checks">
+                    <li><span data-icon="check" style="display:contents"></span>No sign-in required</li>
+                    <li><span data-icon="check" style="display:contents"></span>Results in a moment</li>
+                    <li><span data-icon="check" style="display:contents"></span>Read-only access</li>
+                    <li><span data-icon="check" style="display:contents"></span>Works on any device</li>
+                </ul>
+                <div class="portal-actions">
+                    <a class="btn arrow" href="searchstudent.html">Find a student<span data-icon="arrow" style="display:contents"></span></a>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section tight-top">
+    <div class="section-in">
+        <div class="features">
+            <div class="feature"><span class="ic" data-icon="zap"></span><h3>Instant lookup</h3><p>Find any student record with a single search by Student ID.</p></div>
+            <div class="feature"><span class="ic" data-icon="lock"></span><h3>Secure by default</h3><p>Admin pages sit behind sign-in, with hashed passwords and CSRF protection.</p></div>
+            <div class="feature"><span class="ic" data-icon="trash"></span><h3>Safe deletes</h3><p>Every deletion asks for confirmation before anything is removed.</p></div>
+            <div class="feature"><span class="ic" data-icon="dash"></span><h3>Clear dashboard</h3><p>Totals, course breakdown and quick actions on one overview page.</p></div>
+        </div>
+    </div>
+</section>
+
+<section class="section tight-top">
+    <div class="section-in">
+        <div class="cta-band">
+            <div>
+                <h2>Ready to get your records in order?</h2>
+                <p>Create an admin account in under a minute, or look up a student right away.</p>
+            </div>
+            <div class="hero-cta">
+                <a class="btn lg light arrow" href="admin-register.html">Create admin account<span data-icon="arrow" style="display:contents"></span></a>
+                <a class="btn lg outline-light" href="searchstudent.html">Find a student</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+</main>
+<script src="csrf.js"></script>
+</body>
+</html>
